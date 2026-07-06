@@ -1,0 +1,7 @@
+2026-06-01T10:00:00Z tool=Task agent=Explore action=inject tier=sonnet
+2026-06-01T10:05:00Z tool=Task agent=implementer action=deny tier=opus via=explicit
+2026-06-02T09:00:00Z tool=Task agent=general-purpose action=inject tier=sonnet
+2026-06-03T11:00:00Z tool=Task agent=implementer action=explicit tier=opus
+2026-06-04T08:00:00Z tool=Task agent=implementer action=deny tier=opus via=inject
+2026-06-05T14:00:00Z tool=Task agent=statusline-setup action=inject tier=haiku
+2026-06-06T09:30:00Z tool=Task agent=Explore action=explicit tier=opus

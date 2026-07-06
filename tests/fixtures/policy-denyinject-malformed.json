@@ -1,0 +1,5 @@
+{
+  "mode": "allowlist",
+  "route": {"implementer": "opus"},
+  "deny": "not-an-array"
+}

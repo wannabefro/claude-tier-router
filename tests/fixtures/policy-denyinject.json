@@ -1,0 +1,8 @@
+{
+  "mode": "allowlist",
+  "route": {"implementer": "opus", "Explore": "sonnet"},
+  "deny": [
+    {"agent": "implementer", "model": "opus", "reason": "no-model implementer must not resolve to opus"},
+    {"agent": "Explore", "reason": "deny entry missing model must not match by agent alone"}
+  ]
+}

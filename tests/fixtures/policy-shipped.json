@@ -4,11 +4,23 @@
     "Explore": "sonnet",
     "general-purpose": "sonnet",
     "claude-code-guide": "sonnet",
-    "statusline-setup": "haiku"
+    "statusline-setup": "haiku",
+    "implementer": "sonnet"
   },
   "default": "sonnet",
   "haiku": [],
   "skip": ["fork", "Plan"],
-  "deny": [],
+  "deny": [
+    {
+      "agent": "implementer",
+      "model": "opus",
+      "reason": "Never promote the implementer to Opus or above: plan harder so Sonnet can write it, keep it in the main thread, or route to a different family (best-of-n)."
+    },
+    {
+      "agent": "implementer",
+      "model": "fable",
+      "reason": "Never promote the implementer to Opus or above: plan harder so Sonnet can write it, keep it in the main thread, or route to a different family (best-of-n)."
+    }
+  ],
   "debug": false
 }

@@ -12,10 +12,16 @@
 #
 # Explicit models are never modified (per-invocation > frontmatter, so blanket
 # injection would silently override author-pinned agents; `allowlist` mode
-# guards the same risk for unlisted agents).
+# guards the same risk for unlisted agents) — they are only ever passed
+# through or denied. Deny rules also apply to the injected tier, so a
+# misconfigured route/default can't hand out a combination the policy forbids.
 #
 # Fail-open by design: any parse/IO error exits 0 with no output, leaving the
 # dispatch exactly as it was. A routing hook must never break dispatches.
+#
+# Returning `permissionDecision: "allow"` does not bypass settings.json
+# ask/deny rules — Claude Code re-evaluates those regardless of what a
+# PreToolUse hook returns.
 #
 # NOTE: updatedInput REPLACES the tool input rather than merging (CC #30770),
 # so we always emit the full original tool_input with the model merged in.
@@ -46,21 +52,32 @@ if [ -f "$OVERRIDE_FILE" ] && jq -e . "$OVERRIDE_FILE" >/dev/null 2>&1; then
   POLICY="$(jq -s '.[0] * .[1]' "$POLICY_FILE" "$OVERRIDE_FILE" 2>/dev/null)" || POLICY="$(cat "$POLICY_FILE")"
 fi
 
-log_action() { # action tier
+log_action() { # action tier [via]
+  local via="${3:-}" via_token=""
+  [ -n "$via" ] && via_token=" via=$via"
   { mkdir -p "$(dirname "$LOG_FILE")" 2>/dev/null &&
-    echo "$(date -u +%Y-%m-%dT%H:%M:%SZ) tool=$TOOL_NAME agent=$AGENT_TYPE action=$1 tier=${2:-}" >>"$LOG_FILE"; } 2>/dev/null || true
+    echo "$(date -u +%Y-%m-%dT%H:%M:%SZ) tool=$TOOL_NAME agent=$AGENT_TYPE action=$1 tier=${2:-}$via_token" >>"$LOG_FILE"; } 2>/dev/null || true
+}
+
+deny_reason() { # model -> deny reason for $AGENT_TYPE+model, empty if no match or lookup fails
+  echo "$POLICY" | jq -r --arg a "$AGENT_TYPE" --arg m "$1" \
+    '(.deny // []) | map(select(.agent == $a and .model == $m)) | first | .reason // empty' 2>/dev/null
+}
+
+deny_output() { # reason -> emit the deny hook decision
+  jq -n --arg reason "$1" \
+    '{hookSpecificOutput: {hookEventName: "PreToolUse", permissionDecision: "deny", permissionDecisionReason: $reason}}'
 }
 
 # --- Explicit model: pass through unless a deny rule matches -----------------
 if [ -n "$EXPLICIT_MODEL" ]; then
-  DENIED="$(echo "$POLICY" | jq -r --arg a "$AGENT_TYPE" --arg m "$EXPLICIT_MODEL" \
-    '(.deny // []) | map(select(.agent == $a and .model == $m)) | first | .reason // empty' 2>/dev/null)"
+  DENIED="$(deny_reason "$EXPLICIT_MODEL")"
   if [ -n "$DENIED" ]; then
-    log_action deny "$EXPLICIT_MODEL"
-    jq -n --arg reason "$DENIED" \
-      '{hookSpecificOutput: {hookEventName: "PreToolUse", permissionDecision: "deny", permissionDecisionReason: $reason}}'
+    log_action deny "$EXPLICIT_MODEL" explicit
+    deny_output "$DENIED"
     exit 0
   fi
+  log_action explicit "$EXPLICIT_MODEL"
   exit 0
 fi
 
@@ -82,6 +99,16 @@ else # all-except-skip
 fi
 
 case "$TIER" in sonnet|opus|haiku) ;; *) exit 0 ;; esac
+
+# A computed tier can still land on a denied agent+model combo (e.g. a
+# misconfigured route/default); block it instead of injecting. A genuine jq
+# failure here (malformed deny) falls through to normal injection — fail-open.
+DENIED="$(deny_reason "$TIER")"
+if [ -n "$DENIED" ]; then
+  log_action deny "$TIER" inject
+  deny_output "$DENIED"
+  exit 0
+fi
 
 UPDATED="$(echo "$INPUT" | jq --arg m "$TIER" '.tool_input + {model: $m}' 2>/dev/null)" || exit 0
 [ -z "$UPDATED" ] && exit 0

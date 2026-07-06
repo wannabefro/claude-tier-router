@@ -1,6 +1,6 @@
 {
   "name": "tier-router",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Deterministic model-tier routing for subagent dispatches: injects a policy-driven default model into Agent/Task calls that don't set one, so exploration and mechanical work stop silently inheriting your expensive main-thread model.",
   "author": {
     "name": "Sam McTaggart"
