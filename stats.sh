@@ -18,7 +18,7 @@ if [ $# -eq 1 ]; then
   esac
 fi
 
-LOG_FILE="${TIER_ROUTER_LOG:-$HOME/.claude/hooks/state/tier-router.log}"
+LOG_FILE="${TIER_ROUTER_LOG:-${CLAUDE_CONFIG_DIR:-$HOME/.claude}/hooks/state/tier-router.log}"
 
 if [ ! -s "$LOG_FILE" ]; then
   echo "No log data at $LOG_FILE yet."

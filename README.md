@@ -64,6 +64,8 @@ documented:
 ### User override
 
 Create `~/.claude/tier-router.json` to tune policy without touching the plugin.
+Multi-profile setups are respected: with `CLAUDE_CONFIG_DIR` set, the override
+is read from (and the log written under) that directory instead of `~/.claude`.
 Objects deep-merge; **arrays and scalars replace wholesale** — this includes
 `deny`. If your override sets `deny` at all, it must restate any shipped
 entries you still want (see the example below); otherwise upgrading past this

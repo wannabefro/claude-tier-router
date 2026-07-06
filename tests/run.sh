@@ -189,6 +189,17 @@ else
   echo "FAIL: stats.sh missing log -> friendly message, exit 0 (rc=$STATS_RC out=$STATS_OUT err=$(cat "$STATS_ERR" 2>/dev/null))"; FAIL=$((FAIL+1))
 fi
 
+# 27. CLAUDE_CONFIG_DIR profile: override read from and log written under the profile dir
+PROFILE="$TMP/profile"
+mkdir -p "$PROFILE"
+cat >"$PROFILE/tier-router.json" <<'EOF'
+{"deny": [{"agent": "Explore", "model": "opus", "reason": "profile-dir override active"}]}
+EOF
+out="$(env -u TIER_ROUTER_OVERRIDE -u TIER_ROUTER_LOG CLAUDE_CONFIG_DIR="$PROFILE" TIER_ROUTER_POLICY="$FX/policy-shipped.json" "$SCRIPT" <"$FX/input-explore-opus.json")"
+check "CLAUDE_CONFIG_DIR: profile override honored" \
+  '.hookSpecificOutput.permissionDecision == "deny" and (.hookSpecificOutput.permissionDecisionReason | contains("profile-dir"))' "$out"
+check_log "CLAUDE_CONFIG_DIR: log written under profile dir" "agent=Explore action=deny tier=opus via=explicit" "$PROFILE/hooks/state/tier-router.log"
+
 echo
 echo "passed=$PASS failed=$FAIL"
 [ "$FAIL" -eq 0 ]

@@ -32,9 +32,11 @@ set -uo pipefail
 command -v jq >/dev/null 2>&1 || exit 0
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# Multi-profile setups (CLAUDE_CONFIG_DIR) get per-profile override + log.
+CONFIG_DIR="${CLAUDE_CONFIG_DIR:-$HOME/.claude}"
 POLICY_FILE="${TIER_ROUTER_POLICY:-$SCRIPT_DIR/../policy.json}"
-OVERRIDE_FILE="${TIER_ROUTER_OVERRIDE:-$HOME/.claude/tier-router.json}"
-LOG_FILE="${TIER_ROUTER_LOG:-$HOME/.claude/hooks/state/tier-router.log}"
+OVERRIDE_FILE="${TIER_ROUTER_OVERRIDE:-$CONFIG_DIR/tier-router.json}"
+LOG_FILE="${TIER_ROUTER_LOG:-$CONFIG_DIR/hooks/state/tier-router.log}"
 
 INPUT="$(cat)" || exit 0
 echo "$INPUT" | jq -e . >/dev/null 2>&1 || exit 0
