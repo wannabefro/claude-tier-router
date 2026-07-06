@@ -1,0 +1,13 @@
+{
+  "name": "claude-tier-router",
+  "owner": {
+    "name": "Sam McTaggart"
+  },
+  "plugins": [
+    {
+      "name": "tier-router",
+      "source": "./",
+      "description": "Deterministic model-tier routing for subagent dispatches."
+    }
+  ]
+}

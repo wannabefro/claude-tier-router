@@ -1,0 +1,1 @@
+{"deny":[{"agent":"implementer","model":"opus","reason":"Never promote the implementer to Opus: plan harder so Sonnet can write it, keep it in the main thread, or route to a different family (best-of-n)."}]}

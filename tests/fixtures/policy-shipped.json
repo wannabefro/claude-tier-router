@@ -1,0 +1,14 @@
+{
+  "mode": "allowlist",
+  "route": {
+    "Explore": "sonnet",
+    "general-purpose": "sonnet",
+    "claude-code-guide": "sonnet",
+    "statusline-setup": "haiku"
+  },
+  "default": "sonnet",
+  "haiku": [],
+  "skip": ["fork", "Plan"],
+  "deny": [],
+  "debug": false
+}
